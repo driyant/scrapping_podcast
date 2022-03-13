@@ -19,7 +19,7 @@ class Scrapping():
   print(f"{art}")
   print("Enter desired podcast url. E.g: https://podcasts.apple.com/us/podcast/xxxxxxxx/idxxxxxxxx \n")
   # Uncomment this line and select the path of chrome driver
-  # path = r"C:\\YOUR_PATH_FOLDER_HEREchromedriver.exe" #
+  # path = r"C:\\YOUR_PATH_FOLDER_HERE\\chromedriver.exe" #
   user_agents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36 Edg/99.0.1150.36',
@@ -53,12 +53,13 @@ if __name__ == "__main__":
     while count_btns > 0:
       btn_path = d.driver.find_element(By.XPATH, '/html/body/div[5]/main/div[2]/div/section[1]/div/div[2]/div[4]/div/div/button')
       btn_path.click()
-      time.sleep(10)
+      time.sleep(3)
   except Exception as e:
     print("It's fully loaded, button does not exist!")
   finally:
     try:
-      title = d.driver.title
+      get_the_url = d.prompt_url
+      title = get_the_url.split("/")[-2]
       print("Trying to save data source.............")
       # Get Page Source
       page_source = d.driver.page_source
@@ -112,26 +113,23 @@ if __name__ == "__main__":
         # Generating to excel
         print("Generating into excel format................")
         try:
-          df.to_excel(f"{title}.xlsx")
-          print(f"Filename is : {title}.xlsx has been generated successfully")
+          df.to_excel(f"podcast_{title}.xlsx")
+          print(f"Filename is : podcast_{title}.xlsx has been generated successfully!")
         except Exception as e:
           print(f"Something went wrong! When tying to generate excel format {e}")
-          d.driver.close()
           d.driver.quit()
         # Generating to csv
         print("Generating into csv format..................")
         try:
-          df.to_csv(f'{title}.csv', index=True)
-          print(f"Filename is : {title}.csv has been generated successfully")
+          df.to_csv(f"podcast_{title}.csv", index=True)
+          print(f"Filename is : podcast_{title}.csv has been generated successfully")
         except Exception as e:
           print(f"Something went wrong! When trying to generate csv format {e}")
-          d.driver.close()
           d.driver.quit()
       except Exception as e:
         print(f"Ups sorry, something went wrong! {e}")
         print(f"Suggestion : Please try again with another podcast url")
         print("Exit the program......")
-        d.driver.close()
         d.driver.quit()
         exit()
       print("Thank you, quitting the program....")
@@ -139,6 +137,5 @@ if __name__ == "__main__":
       exit()
     except Exception as e:
       print(f"Something went wrong! {e}")
-      d.driver.close()
       d.driver.quit()
       exit()

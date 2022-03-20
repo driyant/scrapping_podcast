@@ -96,7 +96,7 @@ if __name__ == "__main__":
       time.sleep(3)
       print(f"title: {len(titles)} items, date: {len(dates)} items, duration: {len(durations)} items, link: {len(links)} items, description: {len(descs)} items")   
       # Checking
-      len_titles_invalid = len(titles) != len(dates) or len(titles) != len(dates) or len(titles) != len(durations) or len(titles) != len(links) or len(titles) != len(descs)
+      len_titles_invalid = len(titles) != len(dates) or len(titles) != len(durations) or len(titles) != len(links) or len(titles) != len(descs)
       len_dates_invalid = len(dates) != len(titles) or len(dates) != len(durations) or len(dates) != len(links) or len(titles) != len(descs)
       len_durations_invalid = len(durations) != len(titles) or len(durations) != len(dates) or len(durations) != len(links) or len(durations) != len(descs)
       len_links_invalid = len(links) != len(titles) or len(links) != len(dates) or len(links) != len(durations) or len(links) != len(descs)

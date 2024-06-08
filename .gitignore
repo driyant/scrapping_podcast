@@ -1,2 +1,12 @@
+# Ignore all .xlsx files
+*.xlsx
+
+# Ignore all .html files
+*.html
+
+# Ignore all .csv files
+*.csv
+
+# Existing rules
 /venv
 /__pycache__

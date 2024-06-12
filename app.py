@@ -2,140 +2,165 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-# selenium 4
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.utils import ChromeType
+from selenium.webdriver.chrome.options import Options
 
 import time
 import pandas as pd
-import requests
 from bs4 import BeautifulSoup
 from random import choice
 from art import art
+from spinner import Spinner
 
 class Scrapping():
   print(f"{art}")
-  print("Enter desired podcast url. E.g: https://podcasts.apple.com/us/podcast/xxxxxxxx/idxxxxxxxx \n")
-  # Uncomment this line and select the path of chrome driver
-  # path = r"C:\\YOUR_PATH_FOLDER_HERE\\chromedriver.exe" #
+  print("Enter desired podcast URL. Example: https://podcasts.apple.com/us/podcast/xxxxxxxx/idxxxxxxxx \n")
   user_agents = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36 Edg/99.0.1150.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36 Edg/99.0.1150.36',
   ]
-  prompt_url = input("Enter url podcasts apple below ⬇: \n")
+  prompt_url = input("Enter URL podcasts apple below ⬇ \n")
+  titles = []
+  links = []
+  dates = []
+  descriptions = []
+  durations = []
   def __init__(self):
-    # Uncomment this line if you prefer to open browser locally
-    # self.driver = webdriver.Chrome(executable_path=self.path)
-    self.driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-    
-  def driver_get(self, url):
-    self.driver.get(url)
-  
-if __name__ == "__main__": 
-  d = Scrapping()
-  d.driver_get(d.prompt_url)
-  print("============= Starting The Engine Machine On =============")
-  time.sleep(1)
-  d.driver.maximize_window()
-  time.sleep(1)
-  print("============= Opening The Browser =============")
-  time.sleep(1)
-  print("============= DON'T CLOSE THE BROSER - THIS IS VERY IMPORTANT =============")
-  time.sleep(1)
-  print("Begins......")
-  time.sleep(1)
-  print("============= PLEASE WAIT =============")
-  btn_xpathc = d.driver.find_elements(By.XPATH, '/html/body/div[5]/main/div[2]/div/section[1]/div/div[2]/div[4]/div/div/button')
-  count_btns = len(btn_xpathc)
-  try:
-    while count_btns > 0:
-      btn_path = d.driver.find_element(By.XPATH, '/html/body/div[5]/main/div[2]/div/section[1]/div/div[2]/div[4]/div/div/button')
-      btn_path.click()
+    self.chrome_options = Options()
+    self.chrome_options.add_experimental_option("detach", True)
+    self.chrome_options.add_argument("--disable-gpu")
+    self.chrome_options.add_argument("--headless")
+    self.chrome_options.add_argument("--window-size=1920x1080")
+    self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=self.chrome_options)
+  def start(self, url):
+    if not self.prompt_url:
+      print("URL is required to launch this app")
+      print("Exit the program")
+      exit()
+    # Check if the domain is apple podcast
+    domain = self.prompt_url.split("/")[2]
+    if domain != "podcasts.apple.com":
+      print("Apologise, looks like the url does not refers to apple podcast. Please enter the correct url!")
+      print("Example: https://podcasts.apple.com/us/podcast/xxxxxxxx/idxxxxxxxx")
+      exit()
+    else:
+      print("Looks like the url is correct apple podcast!")
       time.sleep(3)
-  except Exception as e:
-    print("It's fully loaded, button does not exist!")
-  finally:
-    try:
-      get_the_url = d.prompt_url
-      title = get_the_url.split("/")[-2]
-      print("Trying to save data source.............")
-      # Get Page Source
-      page_source = d.driver.page_source
-      # Save it to html
-      with open(f"{title.lower().replace(' ', '-')}.html", "w", encoding='utf8') as file_w:
-        file_w.write(page_source)
-      # Opening File
-      with open(f"{title.lower().replace(' ', '-')}.html", "r", encoding='utf8') as file_r:
-        contents = file_r.read()
-      soup = BeautifulSoup(contents, 'html.parser')
-      # Get Titles
-      get_titles = soup.find_all("a", class_="link tracks__track__link--block")
-      titles = [ x.getText().strip() for x in get_titles ]
-      # Get Links
-      get_links = soup.find_all("a", 'link tracks__track__link--block')
-      links = [x.get("href") for x in get_links ]
-      # Get Date
-      get_dates = soup.find_all("time", {
-        "class" : "",
-        "data-test-we-datetime" : ""
-      })
-      dates = [ x.getText() for x in get_dates ]
-      # Get Description 
-      get_desc = soup.find_all("div", {
-          'class' : 'we-clamp we-clamp--visual',
-          'style' : '--clamp-lines: 3'
-        })
-      descs = [ x.getText().strip() for x in get_desc ]
-      # Get Durations
-      get_durations = soup.find_all("li", class_="inline-list__item inline-list__item--margin-inline-start-small")      
-      durations = [ x.getText().strip() for x in get_durations ]
-      print("Finish Scrapping...............")
-      print("Getting the result ............")
-      time.sleep(3)
-      print(f"title: {len(titles)} items, date: {len(dates)} items, duration: {len(durations)} items, link: {len(links)} items, description: {len(descs)} items")   
-      # Checking
-      len_titles_invalid = len(titles) != len(dates) or len(titles) != len(durations) or len(titles) != len(links) or len(titles) != len(descs)
-      len_dates_invalid = len(dates) != len(titles) or len(dates) != len(durations) or len(dates) != len(links) or len(titles) != len(descs)
-      len_durations_invalid = len(durations) != len(titles) or len(durations) != len(dates) or len(durations) != len(links) or len(durations) != len(descs)
-      len_links_invalid = len(links) != len(titles) or len(links) != len(dates) or len(links) != len(durations) or len(links) != len(descs)
-      len_desc_invalid = len(descs) != len(titles) or len(descs) != len(dates) or len(descs) != len(durations) or len(descs) != len(links)
-      if len_titles_invalid or len_dates_invalid or len_durations_invalid or len_links_invalid or len_desc_invalid:
-        print("> Total items are the the same, which means there must be something missing element")
-        print("> Suggestion : You might want to double check the result.................")
+      spinner = Spinner("STARTING THE ENGINE 🔥")
+      spinner.start()
+      self.driver.get(url)
       time.sleep(1)
+      spinner.stop()
+      # self.driver.maximize_window()
+      spinner = Spinner("PLEASE WAIT")
+      spinner.start()
       try:
-        # data_to_dict = dict(title=titles)
-        print("Plase wait generating the output files......................")
-        data_to_dict = dict(title=titles, duration=durations, date=dates,link=links, description=descs)
-        df = pd.DataFrame({ k: pd.Series(v) for k, v in data_to_dict.items() })
-        # Generating to excel
-        print("Generating into excel format................")
+        while True:
+          btn_load_more = WebDriverWait(self.driver, 10).until(
+              EC.presence_of_element_located((By.XPATH, "/html/body/div[3]/main/div[2]/div/section[1]/div/div[2]/div[4]/div/div/button"))
+          )
+          self.driver.execute_script("arguments[0].scrollIntoView();", btn_load_more)
+          btn_load_more.click()
+          time.sleep(3)
+      except Exception as e:
+        print('\n✨ LOAD MORE DOES NOT EXIST!')
+        spinner.stop()
+      finally:
+        spinner = Spinner("SAVING SOURCE FILE")
+        spinner.start()
+        # Get Title
+        title = self.driver.find_element(By.CSS_SELECTOR, "h1 > span.product-header__title").text
+        time.sleep(1)
+        # Get Page Source
+        page_source = self.driver.page_source
+        # Save it to HTML
+        with open(f"{title.lower().replace(' ', '-')}.html", "w", encoding='utf8') as file_w:
+            file_w.write(page_source)
+        self.driver.quit()
+        spinner.stop()
+        # Opening File
+        with open(f"{title.lower().replace(' ', '-')}.html", "r", encoding='utf8') as file_r:
+            contents = file_r.read()
+        soup = BeautifulSoup(contents, 'html.parser')
+        spinner = Spinner("BEGINS SCRAPPING")
+        spinner.start()
+        time.sleep(2)
+        spinner.stop()
+        spinner = Spinner("GETTING TITLES")
+        spinner.start()
+        # Get Titles
+        get_titles = soup.find_all("a", class_="link tracks__track__link--block")
+        self.titles = [x.getText().strip() if x else "-" for x in get_titles]
+        time.sleep(2)
+        spinner.stop()
+        spinner = Spinner("GETTING LINKS")
+        spinner.start()
+        # Get Links
+        get_links = soup.find_all("a", 'link tracks__track__link--block')
+        self.links = [x.get("href") if x else "-" for x in get_links]
+        time.sleep(2)
+        spinner.stop()
+        spinner = Spinner("GETTING DATES")
+        spinner.start()
+        # Get Date
+        get_dates = soup.find_all("time", {
+            "class": "",
+            "data-test-we-datetime": ""
+        })
+        self.dates = [x.getText() for x in get_dates]
+        # Get Description
+        get_desc = soup.find_all("div", {
+            'class': 'we-clamp we-clamp--visual',
+            'style': '--clamp-lines: 3'
+        })
+        self.descriptions = [x.getText().strip() if x else "-" for x in get_desc]
+        time.sleep(2)
+        spinner.stop()
+        spinner = Spinner("GETTING DURATIONS")
+        spinner.start()
+        # Get Durations
+        get_durations = soup.find_all("li", class_="inline-list__item inline-list__item--margin-inline-start-small")
+        self.durations = [x.getText().strip() if x else "-" for x in get_durations]
+        time.sleep(2)
+        spinner.stop()
+        spinner = Spinner("FINISH SCRAPPING")
+        spinner.start()
+        time.sleep(3)
+        spinner.stop()
+        spinner = Spinner("GETTING THE RESULT")
+        spinner.start()
+        print(f"\n Total Title: {len(self.titles)} items, Total Date: {len(self.dates)} items, Total Duration: {len(self.durations)} items, Total Link: {len(self.links)} items, Total Description: {len(self.descriptions)} items")
+        spinner.stop()
+        time.sleep(2)
+        data_to_dict = dict(title=self.titles, duration=self.durations, date=self.dates, link=self.links, description=self.descriptions)
+        df = pd.DataFrame({k: pd.Series(v) for k, v in data_to_dict.items()})
         try:
-          df.to_excel(f"podcast_{title}.xlsx")
-          print(f"Filename is : podcast_{title}.xlsx has been generated successfully!")
+          # Generating to excel
+          spinner = Spinner("GENERATING INTO EXCEL FORMAT")
+          spinner.start()
+          df.to_excel(f"podcast_{title.lower().replace(' ', '-')}.xlsx")
+          print(f"\n Filename: podcast_{title.lower().replace(' ', '-')}.xlsx has been generated successfully!")
         except Exception as e:
           print(f"Something went wrong! When tying to generate excel format {e}")
-          d.driver.quit()
-        # Generating to csv
-        print("Generating into csv format..................")
+        finally:
+          spinner.stop()
         try:
-          df.to_csv(f"podcast_{title}.csv", index=True)
-          print(f"Filename is : podcast_{title}.csv has been generated successfully")
+          spinner = Spinner("GENERATING INTO CSV FORMAT")
+          spinner.start()
+          # Generating to csv
+          df.to_csv(f"podcast_{title.lower().replace(' ', '-')}.csv", index=True)
+          print(f"\n Filename: PODCAST_{title.lower().replace(' ', '-')}.csv has been generated successfully!")
         except Exception as e:
           print(f"Something went wrong! When trying to generate csv format {e}")
-          d.driver.quit()
-      except Exception as e:
-        print(f"Ups sorry, something went wrong! {e}")
-        print(f"Suggestion : Please try again with another podcast url")
-        print("Exit the program......")
-        d.driver.quit()
-        exit()
-      print("Thank you, quitting the program....")
-      d.driver.quit()
-      exit()
-    except Exception as e:
-      print(f"Something went wrong! {e}")
-      d.driver.quit()
-      exit()
+        finally:
+          spinner.stop()
+          print("✨ PROGRAM EXIT")
+          exit()
+      
+if __name__ == "__main__": 
+  dvr = Scrapping()
+  dvr.start(dvr.prompt_url)

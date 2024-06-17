@@ -56,14 +56,14 @@ class Scrapping():
       time.sleep(1)
       spinner.stop()
       # self.driver.maximize_window()
-      spinner = Spinner("PLEASE WAIT")
+      spinner = Spinner("PLEASE WAIT, SELENIUM IS STARTING!")
       spinner.start()
+      count_btn_load = self.driver.find_elements(By.XPATH, "/html/body/div[3]/main/div[2]/div/section[1]/div/div[2]/div[4]/div/div/button")
       try:
-        while True:
+        while len(count_btn_load) > 0:
           btn_load_more = WebDriverWait(self.driver, 10).until(
               EC.presence_of_element_located((By.XPATH, "/html/body/div[3]/main/div[2]/div/section[1]/div/div[2]/div[4]/div/div/button"))
           )
-          self.driver.execute_script("arguments[0].scrollIntoView();", btn_load_more)
           btn_load_more.click()
           time.sleep(3)
       except Exception as e:
